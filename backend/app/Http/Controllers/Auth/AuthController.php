@@ -35,7 +35,7 @@ class AuthController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
             DB::commit();
-            $this->authResponse($user,$token,201);
+            return $this->authResponse($user,$token,201);
         } catch(Throwable $t) {
             DB::rollBack();
             return $this->error('Failed to register user',$t->getMessage());
@@ -47,13 +47,13 @@ class AuthController extends Controller
         try {
             $user = User::where('email', $rq->email)->first();
             if (! $user || ! Hash::check($rq->password, $user->password)) {
-                $this->error('Invalid credentials',null, 401);
+                return $this->error('Invalid credentials',null, 401);
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
-            $this->authResponse($user,$token);
+            return $this->authResponse($user,$token);
         } catch (Throwable $t) {
-            $this->error('Failed to login user', $t->getMessage());
+            return $this->error('Failed to login user', $t->getMessage());
         }
     }
 
@@ -61,9 +61,9 @@ class AuthController extends Controller
     {
         try {
             $status = Password::sendResetLink($rq->only('email'));
-            $this->passwordResponse($status,($status === Password::RESET_LINK_SENT ? 200 : 422));
+            return $this->passwordResponse($status,($status === Password::RESET_LINK_SENT ? 200 : 422));
         } catch (Throwable $t) {
-            $this->error('Failed to login user', $t->getMessage());
+            return $this->error('Failed to login user', $t->getMessage());
         }
     }
 
@@ -81,9 +81,9 @@ class AuthController extends Controller
                 event(new PasswordReset($user));
             }
         );
-            $this->passwordResponse($status,($status === Password::PASSWORD_RESET ? 200 : 422));
+            return $this->passwordResponse($status,($status === Password::PASSWORD_RESET ? 200 : 422));
         } catch (Throwable $t) {
-            $this->error('Failed to login user', $t->getMessage());
+            return $this->error('Failed to login user', $t->getMessage());
         }
     }
 
@@ -95,13 +95,13 @@ class AuthController extends Controller
     public function logout(Request $rq):JsonResponse
     {
         $rq->user()->currentAccessToken()->delete();
-        $this->ok('Logged out');
+        return $this->ok('Logged out');
     }
 
     public function logoutAll(Request $rq):JsonResponse
     {
         $rq->user()->tokens()->delete();
-        $this->ok('Logged out from all devices');
+        return $this->ok('Logged out from all devices');
     }
 
     public function refresh(Request $rq):JsonResponse
@@ -112,6 +112,6 @@ class AuthController extends Controller
         $rq->user()->currentAccessToken()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $this->authResponse(null,$token);
+        return $this->authResponse(null,$token);
     }
 }
