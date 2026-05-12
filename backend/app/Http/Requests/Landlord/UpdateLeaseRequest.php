@@ -30,7 +30,7 @@ class UpdateLeaseRequest extends FormRequest
             'monthly_rent' => ['sometimes', 'numeric', 'min:0'],
             'deposit_amount'=> ['nullable', 'numeric', 'min:0'],
             'status'=> ['sometimes',Rule::in(array_column(LeaseStatus::cases(), 'value'))],
-            'document_path'=> ['nullable','file','mimes:pdf','max:5120'],
+            'document'=> ['nullable','file','mimes:pdf','max:5120'],
             'landlord_notes' => ['nullable','string']
         ];
     }

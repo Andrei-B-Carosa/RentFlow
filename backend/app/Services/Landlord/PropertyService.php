@@ -2,6 +2,8 @@
 
 namespace App\Services\Landlord;
 
+use App\Constants\LeaseStatus;
+use App\Constants\UnitStatus;
 use App\Helpers\DTServerSide;
 use App\Models\Property;
 use Exception;
@@ -21,7 +23,7 @@ class PropertyService
 
     public function datatable($rq)
     {
-        $data = Property::where('landlord_id',Auth::id())->active();
+        $data = Property::where('landlord_id',Auth::id());
         $searchableColumns = [
             'name',
         ];
@@ -43,7 +45,7 @@ class PropertyService
                 'city'=> $rq->city,
                 'description'=> $rq->description,
                 'photos' => $photoPaths,
-                'is_active'=> $rq->is_active,
+                'is_active'=> filter_var($rq->is_active, FILTER_VALIDATE_BOOLEAN),
             ]);
             DB::commit();
             return response()->json([
@@ -62,7 +64,31 @@ class PropertyService
     public function find(string $id)
     {
         try{
-            $data = Property::where('landlord_id', Auth::id())->active()->findOrFail($id);
+            $data = Property::with([
+                'units' => function($query) {
+                    $query->orderBy('unit_number', 'asc')->with([
+                        'leases' => function($q) {
+                            $q->active()->with('tenant:id,name')->limit(1);
+                        }
+                    ]);
+                },
+                'landlord:id,name,created_at'
+            ])
+            ->withCount([
+                'units as units_count',
+                'units as occupied_count'=>function($q){
+                    $q->where('status',UnitStatus::OCCUPIED->value);
+                },
+                'units as vacant_count'=>function($q){
+                    $q->where('status',UnitStatus::VACANT->value);
+                },
+                'units as under_maintenance_count'=>function($q){
+                    $q->where('status',UnitStatus::UNDER_MAINTENANCE->value);
+                }
+            ])
+            ->where('landlord_id', Auth::id())
+            ->active()
+            ->findOrFail($id);
             return response()->json([
                 'message' => 'Success!',
                 'data' => $data
@@ -104,8 +130,10 @@ class PropertyService
     public function delete(string $id)
     {
         try{
-            $data = Property::where('landlord_id', Auth::id())->active()->findOrFail($id);
+            DB::beginTransaction();
+            $data = Property::where('landlord_id', Auth::id())->findOrFail($id);
             $data->delete();
+            DB::commit();
             return response()->json([
                 'message' => 'Property deleted successfully!',
             ]);

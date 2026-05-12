@@ -9,6 +9,7 @@ type InputProps = {
     onBlur:       (e: React.FocusEvent<HTMLInputElement>) => void;
     error?:       string;
     touched?:     boolean;
+    disabled?:    boolean;
 };
 
 const Input = ({
@@ -22,6 +23,7 @@ const Input = ({
     onBlur,
     error,
     touched,
+    disabled=false,
 }: InputProps) => {
     return (
         <div className={className}>
@@ -43,6 +45,7 @@ const Input = ({
                         ? 'border-red-400 bg-red-50'
                         : 'border-gray-300 bg-white'
                     }`}
+                disabled={disabled}
             />
             {touched && error && (
                 <p className="mt-1 text-xs text-red-500">{error}</p>

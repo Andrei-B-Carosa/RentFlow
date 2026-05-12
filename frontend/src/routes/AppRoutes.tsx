@@ -6,6 +6,10 @@ import Dashboard from '../pages/landlord/dashboard';
 import LandlordLayout from '../layouts/LandlordLayout';
 import PropertiesPage from '../pages/landlord/properties/PropertiesPage';
 import PropertyDetailPage from '../pages/landlord/properties/PropertyDetailPage';
+import TenantPage from '../pages/landlord/tenants/TenantPage';
+import TenantDetailPage from '../pages/landlord/tenants/TenantDetailPage';
+import LeasesPage from '../pages/landlord/leases/LeasesPage';
+import MaintenancePage from '../pages/landlord/maintenance/MaintenancePage';
 
 interface ProtectedRouteProps {
     role?: 'LANDLORD' | 'TENANT';
@@ -30,10 +34,11 @@ const AppRoutes = () => {
                         <Route path={ROUTES.LANDLORD.DASHBOARD}   element={<Dashboard />} />
                         <Route path={ROUTES.LANDLORD.PROPERTIES}  element={<PropertiesPage />} />
                         <Route path={ROUTES.LANDLORD.PROPERTY_DETAIL}  element={<PropertyDetailPage />} />
-                        <Route path={ROUTES.LANDLORD.TENANTS}     element={<div>Tenants</div>} />
-                        <Route path={ROUTES.LANDLORD.LEASES}      element={<div>Leases</div>} />
+                        <Route path={ROUTES.LANDLORD.TENANTS}     element={<TenantPage/>} />
+                        <Route path={ROUTES.LANDLORD.TENANT_DETAIL}     element={<TenantDetailPage/>} />
+                        <Route path={ROUTES.LANDLORD.LEASES}      element={<LeasesPage/>} />
                         <Route path={ROUTES.LANDLORD.PAYMENTS}    element={<div>Payments</div>} />
-                        <Route path={ROUTES.LANDLORD.MAINTENANCE} element={<div>Maintenance</div>} />
+                        <Route path={ROUTES.LANDLORD.MAINTENANCE} element={<MaintenancePage/>} />
                     </Route>
                 </Route>
             </Routes>

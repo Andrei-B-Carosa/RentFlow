@@ -10,10 +10,10 @@ type NavItem = {
 const navItems: NavItem[] = [
     { label: 'Dashboard',   path: ROUTES.LANDLORD.DASHBOARD,   icon: '📊' },
     { label: 'Properties',  path: ROUTES.LANDLORD.PROPERTIES,  icon: '🏢' },
-    { label: 'Tenants',     path: ROUTES.LANDLORD.TENANTS,     icon: '👥' },
     { label: 'Leases',      path: ROUTES.LANDLORD.LEASES,      icon: '📄' },
     { label: 'Payments',    path: ROUTES.LANDLORD.PAYMENTS,    icon: '💰' },
     { label: 'Maintenance', path: ROUTES.LANDLORD.MAINTENANCE, icon: '🔧' },
+    { label: 'Tenants',     path: ROUTES.LANDLORD.TENANTS,     icon: '👥' },
 ];
 
 const Sidebar = () => {

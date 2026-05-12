@@ -6,13 +6,18 @@ type ButtonProps = {
     children:     React.ReactNode;
     className?:   string;
     loadingText?: string;
-    variant?:     'primary' | 'danger' | 'outline';
+    variant?:     'primary' | 'danger' | 'outline' | 'light-primary' | 'light-danger' | 'light-success' | 'light-warning' | 'light-gray';
 };
 
 const variantStyles = {
     primary: 'bg-blue-600 hover:bg-blue-700 text-white',
     danger:  'bg-red-600 hover:bg-red-700 text-white',
     outline: 'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700',
+    'light-primary': 'bg-blue-50 hover:bg-blue-100 text-blue-600',
+    'light-danger':  'bg-red-50 hover:bg-red-100 text-red-600',
+    'light-success': 'bg-green-50 hover:bg-green-100 text-green-600',
+    'light-warning': 'bg-amber-50 hover:bg-amber-100 text-amber-600',
+    'light-gray':    'bg-gray-100 hover:bg-gray-200 text-gray-600',
 };
 
 const Button = ({

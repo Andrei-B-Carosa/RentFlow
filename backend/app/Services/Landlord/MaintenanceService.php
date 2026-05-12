@@ -7,7 +7,9 @@ use App\Helpers\DTServerSide;
 use App\Models\MaintenanceRequest;
 use App\Notifications\MaintenanceStatusUpdated;
 use App\Traits\ApiResponseTrait;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class MaintenanceService
@@ -38,7 +40,7 @@ class MaintenanceService
     public function find(string $id)
     {
         try{
-            $data = MaintenanceRequest::with(['unit'])
+            $data = MaintenanceRequest::with(['unit.property','tenant'])
             ->whereHas('unit.property',function($q){
                 $q->where('landlord_id',Auth::id());
             })
@@ -49,9 +51,10 @@ class MaintenanceService
         }
     }
 
-    public function updateStatus($rq,string $id)
+    public function update($rq,string $id)
     {
         try{
+            DB::beginTransaction();
             $data = MaintenanceRequest::with('tenant')->whereHas('unit.property',function($q){
                 $q->where('landlord_id',Auth::id());
             })->findOrFail($id);
@@ -61,13 +64,32 @@ class MaintenanceService
             $newStatus = MaintenanceStatus::from($rq->status);
             $data->update([
                 'status'          => $newStatus,
-                'landlord_notes'  => $rq->landlord_notes,
-                'resolved_at'     => $newStatus === MaintenanceStatus::RESOLVED ? now() : null,
+                'landlord_notes'  => $rq->landlord_notes ?? $data->landlord_notoes,
+                'resolved_at'     => $newStatus === MaintenanceStatus::RESOLVED ? $rq->resolved_at : null,
             ]);
             $data->tenant->notify(new MaintenanceStatusUpdated($data));
+            DB::commit();
             return $this->ok('Success!',$data->fresh());
         } catch(Throwable $e) {
+            DB::rollback();
             return $this->error('Failed to update maintenance request!',$e->getMessage());
+        }
+    }
+
+    public function delete(string $id)
+    {
+        try{
+            DB::beginTransaction();
+            $data = MaintenanceRequest::findOrFail($id);
+            if ($data->status === MaintenanceStatus::RESOLVED) {
+                return $this->error('Cannot delete a resolved request.', null, 422);
+            }
+            $data->delete();
+            DB::commit();
+            return $this->ok('Request is deleted');
+        } catch(Throwable $t) {
+            DB::rollback();
+            return $this->ok('Failed to delete request.',$t->getMessage(),500);
         }
     }
 }

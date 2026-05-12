@@ -28,11 +28,11 @@ class StoreLeaseRequest extends FormRequest
             'unit_id' => ['required','exists:units,id'],
             'tenant_id' => ['required','exists:users,id'],
             'start_date' => ['required','date'],
-            'end_date' => ['required','date'],
+            'end_date' => ['nullable','date'],
             'monthly_rent' => ['required', 'numeric', 'min:0'],
             'deposit_amount'=> ['required', 'numeric', 'min:0'],
-            'status'        => ['required', Rule::in(array_column(LeaseStatus::cases(), 'value'))],
-            'document_path' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'status'        => ['sometimes', Rule::in(array_column(LeaseStatus::cases(), 'value'))],
+            'document' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
             'landlord_notes' => ['nullable','string']
         ];
     }

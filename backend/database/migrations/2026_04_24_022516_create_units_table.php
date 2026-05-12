@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('unit_number');
             $table->decimal('rent_price',10,2);
             $table->enum('status',['VACANT','OCCUPIED','UNDER_MAINTENANCE'])->default('VACANT');
-            $table->string('bedrooms')->nullable();
-            $table->string('bathrooms')->nullable();
+            $table->integer('bedrooms')->nullable();
+            $table->integer('bathrooms')->nullable();
             $table->decimal('floor_area',8,2)->nullable();
             $table->timestamps();
             $table->softDeletes();

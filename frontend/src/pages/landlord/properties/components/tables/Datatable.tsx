@@ -37,10 +37,48 @@ export const PropertyDatatable = ({
             title:'#', key: 'row_number', sortable: true
         },
         {
-            title:'Property', key: 'name', sortable: true
+            title:'Property', key: 'name', sortable: true,
+            render:(item)=>(
+                <div className="flex items-center gap-4">
+                    <img
+                        src={`${import.meta.env.VITE_STORAGE_URL}/${item.photos[0]}`}
+                        alt={item.name}
+                        className="w-12 h-12 rounded-sm object-cover flex-shrink-0"
+                    />
+                    <span className="font-semibold text-gray-900">
+                        {item.name}
+                    </span>
+                </div>
+            )
         },
         {
-            title:'Created At', key: 'created_at', sortable: true
+            title:'Address', key: 'name', sortable: false,
+            render:(item)=>(
+                <>
+                    <span>{item.address+', '+item.city}</span>
+                </>
+            )
+        },
+        {
+            title:'Description', key: 'description', sortable: false
+        },
+        {
+            title:'Status', key:'is_active',sortable:false,
+            render:(item)=>(
+                <span
+                    className={`px-3 py-1 text-xs font-bold rounded-full border uppercase tracking-wider ${
+                        item.is_active
+                            ? "bg-green-50 text-green-600 border-green-100"
+                            : "bg-red-50 text-red-500 border-red-100"
+                    }`}
+                >
+                    {item.is_active ? "Active" : "Inactive"}
+                </span>
+            )
+            
+        },
+        {
+            title:'Created At', key: 'formatted_date', sortable: true
         },
         {
             title: 'Action',key: 'id',
@@ -81,6 +119,8 @@ export const PropertyDatatable = ({
                 onPageChange={onPageChange}
                 onSortChange={onSortChange}
                 onSearchChange={onSearchChange}
+                // cardTitle="Properties"
+                // cardSubTitle="Manage your rental properties"
             />
         </div>
     )

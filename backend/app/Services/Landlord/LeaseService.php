@@ -33,8 +33,8 @@ class LeaseService
         ];
         $sortableColumn = [
             'id' => 'id',
-            'start_date' => 'start_date',
-            'end_date'   => 'end_date',
+            'formatted_start_date' => 'formatted_start_date',
+            'formatted_end_date'   => 'formatted_end_date',
         ];
         return (new DTServerSide($rq,$data,$searchableColumn,$sortableColumn))->renderTable();
     }
@@ -139,10 +139,14 @@ class LeaseService
             if($data->status === LeaseStatus::EXPIRED) {
                 return $this->error('Cannot terminate a expired lease.', null, 422);
             }
+            $end_date = $data->end_date ?? Carbon::now();
+            if($data->end_date){
+                $end_date = Carbon::now()->lt($data->end_date) ? Carbon::now() : $end_date;
+            }
             $data->update([
                 'status' => LeaseStatus::TERMINATED->value,
-                'landlord_notes' =>$rq->landlord_notes,
-                'end_date' =>Carbon::now()->lt($data->end_date) ? Carbon::now() : $data->end_date,
+                'landlord_notes' =>$rq->landlord_notes??$data->landlord_notes,
+                'end_date' =>$end_date,
             ]);
             DB::commit();
             return $this->ok('Lease terminated successfully');

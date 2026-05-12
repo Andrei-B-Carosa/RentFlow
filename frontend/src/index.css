@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+
+.swiper-button-next,
+.swiper-button-prev {
+    color: white !important;
+    background: rgba(0, 0, 0, 0.3);
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50%;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 14px !important;
+}
+
+.swiper-pagination-bullet-active {
+    background: white !important;
+}

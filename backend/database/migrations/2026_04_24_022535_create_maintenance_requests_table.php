@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUuid('tenant_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
             $table->string('description');
-            $table->json('photos');
+            $table->json('photos')->nullable();
             $table->enum('priority',['LOW','MEDIUM','HIGH','URGENT']);
             $table->enum('status',['OPEN','IN_PROGRESS','RESOLVED']);
             $table->text('landlord_notes')->nullable();

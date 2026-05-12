@@ -25,7 +25,6 @@ class StoreUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'property_id' => ['required', 'string'],
             'unit_number' => ['required', 'string'],
             'rent_price' => ['required', 'numeric'],
             'status'      => [

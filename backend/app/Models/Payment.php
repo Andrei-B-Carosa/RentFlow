@@ -27,6 +27,27 @@ class Payment extends BaseModel
         'breakdown' => 'array'
     ];
 
+    protected $appends = [
+        'formatted_date',
+        'formatted_paid_at',
+        'formatted_due_date',
+    ];
+
+    public function getFormattedDateAttribute(): string
+    {
+        return $this->created_at->format('F d, Y · h:i A');
+    }
+
+    public function getFormattedDueDateAttribute(): string
+    {
+        return $this->due_date->format('F d, Y · h:i A');
+    }
+
+    public function getFormattedPaidAtAttribute(): string
+    {
+        return $this->paid_at?$this->paid_at->format('F d, Y · h:i A'):'';
+    }
+
     public function scopePaid($q)
     {
         return $q->where('status',PaymentStatus::PAID->value);

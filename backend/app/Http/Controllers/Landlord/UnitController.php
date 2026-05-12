@@ -15,9 +15,9 @@ class UnitController extends Controller
         return $service->list($id);
     }
 
-    public function store(StoreUnitRequest $rq, UnitService $service):JsonResponse
+    public function store(StoreUnitRequest $rq, UnitService $service, string $id):JsonResponse
     {
-        return $service->create($rq);
+        return $service->create($rq,$id);
     }
 
     public function show(string $id,UnitService $service):JsonResponse

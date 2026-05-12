@@ -70,7 +70,8 @@ export function DataTableHandler<T>({
         <div className="bg-white shadow-sm rounded-xl mb-5">
 
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+            { (cardTitle || onSearchChange) && (<div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+
                 <div>
                     {cardTitle && (
                         <h3 className="text-base font-semibold text-gray-800">{cardTitle}</h3>
@@ -79,7 +80,7 @@ export function DataTableHandler<T>({
                         <p className="text-sm text-gray-400 mt-0.5">{cardSubTitle}</p>
                     )}
                 </div>
-
+                
                 {/* Search */}
                 {onSearchChange && (
                     <input
@@ -91,7 +92,8 @@ export function DataTableHandler<T>({
                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-56"
                     />
                 )}
-            </div>
+            </div>)
+            }
 
             {/* Table */}
             <div

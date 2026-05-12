@@ -13,11 +13,19 @@ class CheckRole
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next,string $role): mixed
+    public function handle(Request $request, Closure $next, string $role): mixed
     {
-        if($request->user()?->role !==$role){
-            abort('403','Unauthorized');
+        $userRole = $request->user()?->role;
+
+        // if role is cast to enum — get the string value
+        $userRoleValue = $userRole instanceof \BackedEnum
+            ? $userRole->value
+            : (string) $userRole;
+
+        if (strtoupper($userRoleValue) !== strtoupper($role)) {
+            abort(403, 'Unauthorized');
         }
+
         return $next($request);
     }
 }

@@ -21,12 +21,6 @@ class MaintenanceRequest extends BaseModel
         'resolved_at',
     ];
 
-    protected $casts = [
-        'status'=>MaintenanceStatus::class,
-        'priority'=>PriorityStatus::class,
-        'photos'=>'array',
-    ];
-
     protected static function boot()
     {
         parent::boot();
@@ -36,22 +30,30 @@ class MaintenanceRequest extends BaseModel
                 $model->status = MaintenanceStatus::OPEN->value;
             }
         });
-        // static::updated(function($model){
-        //     if($model->wasChanged('status')){
-        //         //check if OPEN and new status is IN_PROGRESS
-        //         if($model->getOriginal('status') === MaintenanceStatus::OPEN->value){
-        //             if($model->status === MaintenanceStatus::IN_PROGRESS->value){
-        //                 $model->unit()->update(['status' => UnitStatus::UNDER_MAINTENANCE->value]);
-        //             }
-        //         }
-        //         //check if RESOLVED and old status is IN_PROGRESS
-        //         if($model->status === MaintenanceStatus::RESOLVED->value){
-        //             if($model->getOriginal('status') === MaintenanceStatus::IN_PROGRESS->value){
-        //                 $model->unit()->update(['status' => UnitStatus::OCCUPIED->value]);
-        //             }
-        //         }
-        //     }
-        // });
+    }
+
+    protected $casts = [
+        'status'=>MaintenanceStatus::class,
+        'priority'=>PriorityStatus::class,
+        'photos'=>'array',
+        'resolved_at'=>'date',
+    ];
+
+    protected $appends = [
+        'formatted_date',
+        'formatted_resolved_at'
+    ];
+
+    public function getFormattedDateAttribute(): string
+    {
+        return $this->created_at?$this->created_at->format('F d, Y'):'';
+        // output: April 22, 2026 · 10:30 AM
+    }
+
+    public function getFormattedResolvedAtAttribute(): string
+    {
+        return $this->resolved_at?$this->resolved_at->format('F d, Y'):'';
+        // output: April 22, 2026 · 10:30 AM
     }
 
     public function unit()

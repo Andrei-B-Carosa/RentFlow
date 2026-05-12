@@ -17,6 +17,18 @@ class Unit extends BaseModel
         'floor_area',
     ];
 
+    protected static function boot() {
+
+        parent::boot();
+
+        static::creating(function($model){
+            if(empty($model->status)){
+                $model->status = UnitStatus::VACANT->value;
+            }
+        });
+
+    }
+
     protected $casts = [
         'status' => UnitStatus::class,
     ];
@@ -31,7 +43,7 @@ class Unit extends BaseModel
         return $this->hasMany(MaintenanceRequest::class,'unit_id');
     }
 
-    public function lease()
+    public function leases()
     {
         return $this->hasOne(Lease::class,'unit_id');
     }

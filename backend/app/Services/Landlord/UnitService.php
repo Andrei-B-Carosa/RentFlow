@@ -31,21 +31,20 @@ class UnitService
        }
     }
 
-    public function create($rq)
+    public function create($rq,string $id)
     {
         try{
             DB::beginTransaction();
             $data = Unit::create([
-                'property_id' => $rq->property_id,
+                'property_id' => $id,
                 'unit_number' => $rq->unit_number,
                 'rent_price' => $rq->rent_price,
-                'status' => $rq->status,
                 'bedrooms' => $rq->bedrooms,
                 'bathrooms' => $rq->bathrooms,
                 'floor_area' => $rq->floor_area,
             ]);
             DB::commit();
-            return $this->ok('Unit created successfully!',$data,201);
+            return $this->ok('Unit created successfully!',null,201);
         } catch(Exception $e){
             DB::rollBack();
             return $this->error('Failed to create unit!',$e->getMessage());

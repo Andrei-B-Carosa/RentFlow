@@ -59,6 +59,27 @@ class Lease extends BaseModel
 
     }
 
+    protected $appends = [
+        'formatted_date',
+        'formatted_start_date',
+        'formatted_end_date',
+    ];
+
+    public function getFormattedDateAttribute(): string
+    {
+        return $this->created_at->format('F d, Y · h:i A');
+    }
+
+    public function getFormattedStartDateAttribute(): string
+    {
+        return $this->start_date->format('F d, Y');
+    }
+
+    public function getFormattedEndDateAttribute(): string
+    {
+        return $this->end_date? $this->end_date->format('F d, Y'):'';
+    }
+
     public function scopeActive($q)
     {
         return $q->where('status', LeaseStatus::ACTIVE->value);

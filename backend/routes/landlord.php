@@ -9,7 +9,13 @@ use App\Http\Controllers\Landlord\PropertyController;
 use App\Http\Controllers\Landlord\TenantController;
 use App\Http\Controllers\Landlord\UnitController;
 use Illuminate\Support\Facades\Route;
+use App\Helpers\SelectFetcher;
 
+Route::prefix('select')->controller(SelectFetcher::class)->group(function(){
+    Route::get('get-properties','getProperties');
+    Route::get('{id}/get-units','getUnits');
+    Route::get('get-tenants','getTenants');
+});
 
 Route::prefix('dashboard')->controller(DashboardController::class)->group(function(){
     Route::get('/','index');
@@ -34,7 +40,10 @@ Route::controller(UnitController::class)->group(function(){
 
 Route::prefix('tenants')->controller(TenantController::class)->group(function(){
     Route::get('/','index');
+    Route::post('/','store');
     Route::get('/{id}','show');
+    Route::put('/{id}','update');
+    Route::delete('{id}','destroy');
 });
 
 Route::prefix('payments')->controller(PaymentController::class)->group(function(){
@@ -47,7 +56,8 @@ Route::prefix('payments')->controller(PaymentController::class)->group(function(
 Route::prefix('maintenance')->controller(MaintenanceController::class)->group(function(){
     Route::get('/','index');
     Route::get('/{id}','show');
-    Route::patch('/{id}/status','updateStatus');
+    Route::put('/{id}','update');
+    Route::delete('{id}','destroy');
 });
 
 Route::prefix('leases')->controller(LeaseController::class)->group(function () {

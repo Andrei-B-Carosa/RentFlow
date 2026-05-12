@@ -20,8 +20,13 @@ class MaintenanceController extends Controller
         return $service->find($id);
     }
 
-    public function updateStatus(UpdateStatusRequest $rq,MaintenanceService $service,string $id):JsonResponse
+    public function update(UpdateStatusRequest $rq,MaintenanceService $service,string $id):JsonResponse
     {
-        return $service->updateStatus($rq,$id);
+        return $service->update($rq,$id);
+    }
+
+    public function destroy(MaintenanceService $service,string $id):JsonResponse
+    {
+        return $service->delete($id);
     }
 }
