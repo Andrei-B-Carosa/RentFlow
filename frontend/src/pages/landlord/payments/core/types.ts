@@ -1,6 +1,8 @@
 import type { LeaseProps } from "../../leases/core/types";
 
 export interface PaymentProps {
+    id:string;
+    lease_id:string;
     row_number?:number;
     amount:number;
     late_fee:number;
@@ -12,5 +14,6 @@ export interface PaymentProps {
     formatted_date:string;
     formatted_paid_at:string;
     formatted_due_date:string|null;
-    lease:LeaseProps
+    lease:LeaseProps;
+    type?:string;
 }

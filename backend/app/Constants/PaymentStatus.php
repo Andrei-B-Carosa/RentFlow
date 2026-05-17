@@ -9,3 +9,10 @@ enum PaymentStatus:string
     case PARTIAL='PARTIAL';
     case LATE='LATE';
 }
+
+enum PaymentType:string
+{
+    case RENT='RENT';
+    case EXTRA_CHARGE='EXTRA_CHARGE';
+    case DEPOSIT='DEPOSIT';
+}

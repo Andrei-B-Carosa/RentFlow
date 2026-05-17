@@ -7,7 +7,6 @@ import TenantSelect   from '../../../../../components/common/select/TenantSelect
 import PropertySelect from '../../../../../components/common/select/PropertySelect'
 import Input          from '../../../../../components/common/Input'
 import Button         from '../../../../../components/common/Button'
-import { handleApiError } from '../../../../../utils/errorHandler'
 
 interface Props {
     onSuccess:    () => void
@@ -73,8 +72,6 @@ const CreateLeasesForm = ({onSuccess,data= null,id= null,property_id, unit_id,}:
                     await controller.createLease(values)
                 }
                 onSuccess()
-            } catch (error: any) {
-                handleApiError(error)
             } finally {
                 setSubmitting(false)
             }

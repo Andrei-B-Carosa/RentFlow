@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->timestamp('paid_at')->nullable();
             $table->enum('status',['PENDING','PAID','PARTIAL','LATE']);
+            $table->enum('type', ['RENT', 'EXTRA_CHARGE', 'DEPOSIT', 'UTILITY'])->default('RENT');
             $table->json('breakdown')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

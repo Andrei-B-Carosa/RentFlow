@@ -15,6 +15,7 @@ Route::prefix('select')->controller(SelectFetcher::class)->group(function(){
     Route::get('get-properties','getProperties');
     Route::get('{id}/get-units','getUnits');
     Route::get('get-tenants','getTenants');
+    Route::get('get-leases','getLeases');
 });
 
 Route::prefix('dashboard')->controller(DashboardController::class)->group(function(){

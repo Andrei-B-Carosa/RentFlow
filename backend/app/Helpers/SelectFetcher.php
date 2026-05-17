@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Helpers;
+use App\Constants\LeaseStatus;
 use App\Constants\Role;
 use App\Constants\UnitStatus;
+use App\Models\Lease;
 use App\Models\Property;
 use App\Models\Unit;
 use App\Models\User;
@@ -61,5 +63,20 @@ class SelectFetcher
         }
 
         return $this->ok('Success', $query->get(['id', 'name', 'email']));
+    }
+
+    public function getLeases(Request $rq)
+    {
+        $data = Lease::whereHas('unit.property', function ($q) {
+            $q->where('landlord_id', Auth::id());
+        })
+        ->active()
+        ->with([
+            'unit:id,unit_number',
+            'tenant:id,name',
+        ])
+        ->get(['id', 'unit_id', 'tenant_id', 'monthly_rent']);
+
+        return $this->ok('Success', $data);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services\Landlord;
 
 use App\Constants\PaymentStatus;
+use App\Constants\PaymentType;
 use App\Helpers\DTServerSide;
 use App\Models\Payment;
 use App\Notifications\PaymentConfirmed;
@@ -44,7 +45,7 @@ class PaymentService
     {
         try{
             DB::beginTransaction();
-            $exists = Payment::where([['lease_id', $rq->lease_id],['due_date', $rq->due_date]])
+            $exists = Payment::where([['lease_id', $rq->lease_id],['due_date', $rq->due_date],['type',PaymentType::RENT->value]])
             ->whereHas('unit.property', function ($q) {
                 $q->where('landlord_id', Auth::id());
             })
@@ -56,6 +57,7 @@ class PaymentService
                 'lease_id' => $rq->lease_id,
                 'amount'  => $rq->amount,
                 'late_fee' => $rq->late_fee,
+                'type' => $rq->type,
                 'due_date' => $rq->due_date,
                 'paid_at' => $rq->paid_at,
                 'status' => $rq->status,

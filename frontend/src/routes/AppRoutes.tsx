@@ -10,6 +10,7 @@ import TenantPage from '../pages/landlord/tenants/TenantPage';
 import TenantDetailPage from '../pages/landlord/tenants/TenantDetailPage';
 import LeasesPage from '../pages/landlord/leases/LeasesPage';
 import MaintenancePage from '../pages/landlord/maintenance/MaintenancePage';
+import PaymentPage from '../pages/landlord/payments/PaymentPage';
 
 interface ProtectedRouteProps {
     role?: 'LANDLORD' | 'TENANT';
@@ -37,7 +38,7 @@ const AppRoutes = () => {
                         <Route path={ROUTES.LANDLORD.TENANTS}     element={<TenantPage/>} />
                         <Route path={ROUTES.LANDLORD.TENANT_DETAIL}     element={<TenantDetailPage/>} />
                         <Route path={ROUTES.LANDLORD.LEASES}      element={<LeasesPage/>} />
-                        <Route path={ROUTES.LANDLORD.PAYMENTS}    element={<div>Payments</div>} />
+                        <Route path={ROUTES.LANDLORD.PAYMENTS}    element={<PaymentPage/>} />
                         <Route path={ROUTES.LANDLORD.MAINTENANCE} element={<MaintenancePage/>} />
                     </Route>
                 </Route>

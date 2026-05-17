@@ -67,12 +67,12 @@ class Lease extends BaseModel
 
     public function getFormattedDateAttribute(): string
     {
-        return $this->created_at->format('F d, Y · h:i A');
+        return $this->created_at?$this->created_at->format('F d, Y · h:i A'):'';
     }
 
     public function getFormattedStartDateAttribute(): string
     {
-        return $this->start_date->format('F d, Y');
+        return $this->start_date?$this->start_date->format('F d, Y'):'';
     }
 
     public function getFormattedEndDateAttribute(): string
