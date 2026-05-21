@@ -19,14 +19,14 @@ class GenerateMonthlyPayments extends Command
     public function handle()
     {
         $today = Carbon::now();
-        if($today->day < 8 || $today->day >14){
-            $this->info('Not 2nd week — skipping');
-            return;
-        }
-        if(!$today->isMonday()){
-            $this->info('Not Monday — skipping');
-            return;
-        }
+        // if($today->day < 8 || $today->day >14){
+        //     $this->info('Not 2nd week — skipping');
+        //     return;
+        // }
+        // if(!$today->isMonday()){
+        //     $this->info('Not Monday — skipping');
+        //     return;
+        // }
         $previousMonth = $today->copy()->subMonth();
         Lease::with([
             'tenant',
@@ -47,7 +47,7 @@ class GenerateMonthlyPayments extends Command
             $breakdown = $this->buildBreakdown($lease, $previousPayment);
 
             // generate monthly payment and notify
-            $this->rentDueReminder($lease,$today,$breakdown);
+            $this->rentDueReminder($lease,$breakdown);
 
         });
     }
@@ -93,14 +93,14 @@ class GenerateMonthlyPayments extends Command
         }
     }
 
-    private function rentDueReminder($lease,$today,$breakdown)
+    private function rentDueReminder($lease,$breakdown)
     {
         // generate new payment
         $payment = Payment::create([
             'lease_id'  => $lease->id,
             'amount'    => $breakdown['total'],
             'late_fee'  => 0,
-            'due_date'  => $today,
+            'due_date'  => Carbon::now()->endOfMonth(),
             'paid_at'   => null,
             'status'    => 'PENDING',
             'notes'     => 'Auto-generated monthly payment.',

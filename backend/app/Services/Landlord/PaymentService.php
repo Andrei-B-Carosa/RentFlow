@@ -110,11 +110,16 @@ class PaymentService
 
             $newTotalPaid = (int)$payment->amount_paid + (int) $rq->amount_paid;
             $totalDue = (int) $payment->amount + (int) $payment->late_fee;
+
+            if($newTotalPaid > $payment->amount){
+                return $this->error('Amount paid cannot exceed the remaining payment.', null, 422);
+            }
+
             if ($newTotalPaid <= 0) {
                 $status = PaymentStatus::PENDING->value;
             } elseif ($newTotalPaid < $totalDue) {
                 $status = PaymentStatus::PARTIAL->value;
-            } else {
+            } elseif ($newTotalPaid == $totalDue) {
                 $status = PaymentStatus::PAID->value;
             }
 
