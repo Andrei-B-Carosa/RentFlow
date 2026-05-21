@@ -25,9 +25,9 @@ class PaymentController extends Controller
         return $service->find($id);
     }
 
-    public function updateStatus(Request $rq,PaymentService $service, string $id):JsonResponse
+    public function update(Request $rq,PaymentService $service, string $id):JsonResponse
     {
-        return $service->updateStatus($rq,$id);
+        return $service->update($rq,$id);
     }
 
 }

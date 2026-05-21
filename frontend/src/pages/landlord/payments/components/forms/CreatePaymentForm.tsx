@@ -2,11 +2,11 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { useController } from '../../core/requests'
 import type { PaymentProps } from '../../core/types'
-import Input   from '../../../../../components/common/Input'
-import Button  from '../../../../../components/common/Button'
+import Input          from '../../../../../components/common/Input'
+import Button         from '../../../../../components/common/Button'
 import { handleApiError } from '../../../../../utils/errorHandler'
-import swal from '../../../../../utils/swal'
-import LeaseSelect from '../../../../../components/common/select/LeaseSelect'
+import swal           from '../../../../../utils/swal'
+import LeaseSelect    from '../../../../../components/common/select/LeaseSelect'
 
 interface Props {
     id?:       string
@@ -14,34 +14,33 @@ interface Props {
     onSuccess: () => void
 }
 
-const PAYMENT_STATUSES = ['PENDING', 'PAID', 'PARTIAL', 'LATE']
-
 const PAYMENT_TYPES = [
-    { value: 'RENT',         label: 'Rent',          desc: 'Regular monthly rent'        },
-    { value: 'EXTRA_CHARGE', label: 'Extra Charge',  desc: 'One-time charge to tenant'   },
-    { value: 'DEPOSIT',      label: 'Deposit',       desc: 'Security deposit'             },
+    {
+        value: 'EXTRA_CHARGE',
+        label: 'Extra Charge',
+        desc:  'One-time charge to tenant e.g. repairs, damages',
+    },
+    {
+        value: 'DEPOSIT',
+        label: 'Deposit',
+        desc:  'Security deposit collected from tenant',
+    },
 ]
 
 const Schema = Yup.object({
     lease_id: Yup.string().required('Lease is required'),
-    amount:   Yup.number().required('Amount is required').min(0),
-    late_fee: Yup.number().nullable().min(0),
-    due_date: Yup.date().required('Due date is required'),
-    paid_at:  Yup.date().nullable()
-        .when('status', {
-            is:        'PAID',
-            then:      (schema) => schema.required('Paid date is required when status is PAID'),
-            otherwise: (schema) => schema.nullable(),
-        }),
-    status:   Yup.string().required('Status is required'),
+    type:     Yup.string().required('Payment type is required'),
+    amount:   Yup.number().required('Amount is required').min(1, 'Amount must be greater than 0'),
+    paid_at:  Yup.date().required('Paid date is required'),
     notes:    Yup.string().nullable(),
-    type:Yup.string().required('Payment type is required'),
 })
 
 const formatDateForInput = (date: string | null | undefined): string => {
     if (!date) return ''
     return new Date(date).toISOString().split('T')[0]
 }
+
+const today = formatDateForInput(new Date().toISOString())
 
 const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
 
@@ -51,19 +50,16 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
-            lease_id: data?.lease_id ?? '',
-            amount:   data?.amount   ?? '',
-            late_fee: data?.late_fee ?? '',
-            due_date: formatDateForInput(data?.due_date),
-            paid_at:  formatDateForInput(data?.paid_at),
-            status:   data?.status   ?? 'PENDING',
-            notes:    data?.notes    ?? '',
-            type:     data?.type ?? 'RENT',
+            lease_id: data?.lease_id              ?? '',
+            type:     data?.type                  ?? 'EXTRA_CHARGE',
+            amount:   data?.amount                ?? '',
+            paid_at: formatDateForInput(data?.paid_at) || today,
+            notes:    data?.notes                 ?? '',
         },
         validationSchema: Schema,
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                swal.loading(isEdit ? 'Updating payment...' : 'Recording payment...')
+                swal.loading(isEdit ? 'Updating...' : 'Creating charge...')
                 if (isEdit) {
                     await controller.updatePayment(id, values)
                 } else {
@@ -72,7 +68,7 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                 swal.close()
                 swal.ok(isEdit
                     ? 'Payment updated successfully!'
-                    : 'Payment recorded successfully!'
+                    : 'Charge created successfully!'
                 )
                 onSuccess()
             } catch (error: any) {
@@ -96,24 +92,27 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                     <span className="flex-shrink-0 mt-0.5">✅</span>
                     <div>
                         <p className="text-sm font-semibold text-green-800">
-                            This payment has been marked as paid
+                            This payment has been fully paid
                         </p>
                         <p className="text-xs text-green-600 mt-0.5">
-                            Paid payments are read-only.
+                            Paid records are read-only.
                         </p>
                     </div>
                 </div>
             )}
 
+            {/* Payment Type — radio cards */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                     Payment Type
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                     {PAYMENT_TYPES.map((type) => (
                         <label
                             key={type.value}
-                            className={`flex flex-col gap-1 p-3 rounded-xl border-2 cursor-pointer transition
+                            className={`flex flex-col gap-1 p-4 rounded-xl border-2
+                                cursor-pointer transition
+                                ${isLocked ? 'cursor-not-allowed opacity-60' : ''}
                                 ${formik.values.type === type.value
                                     ? 'border-blue-500 bg-blue-50'
                                     : 'border-gray-200 bg-white hover:border-gray-300'
@@ -124,8 +123,9 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                                 name="type"
                                 value={type.value}
                                 checked={formik.values.type === type.value}
-                                onChange={() => formik.setFieldValue('type', type.value)}
+                                onChange={() => !isLocked && formik.setFieldValue('type', type.value)}
                                 className="hidden"
+                                disabled={isLocked}
                             />
                             <span className={`text-sm font-bold
                                 ${formik.values.type === type.value
@@ -149,7 +149,7 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                 )}
             </div>
 
-            {/* Lease select */}
+            {/* Lease */}
             <LeaseSelect
                 label="Lease"
                 value={formik.values.lease_id}
@@ -160,86 +160,35 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                 disabled={isEdit}
             />
 
-            {/* Amount + Late fee */}
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    label="Amount (₱)"
-                    name="amount"
-                    type="number"
-                    placeholder="e.g. 10000"
-                    value={formik.values.amount}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.amount}
-                    touched={formik.touched.amount}
-                    disabled={isLocked}
-                />
-                <Input
-                    label="Late Fee (₱)"
-                    name="late_fee"
-                    type="number"
-                    placeholder="e.g. 500"
-                    value={formik.values.late_fee}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.late_fee}
-                    touched={formik.touched.late_fee}
-                    disabled={isLocked}
-                />
-            </div>
+            {/* Amount */}
+            <Input
+                label={`Amount Paid ${formik.values.type === 'DEPOSIT'
+                    ? '— Security deposit'
+                    : '— Charge amount'}`}
+                name="amount"
+                type="number"
+                placeholder="e.g. 10000"
+                value={formik.values.amount}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.errors.amount}
+                touched={formik.touched.amount}
+                disabled={isLocked}
+            />
 
-            {/* Due date + Paid at */}
-            <div className="grid grid-cols-2 gap-4">
-                <Input
-                    label="Due Date"
-                    name="due_date"
-                    type="date"
-                    placeholder=""
-                    value={formik.values.due_date}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.due_date}
-                    touched={formik.touched.due_date}
-                    disabled={isLocked}
-                />
-                <Input
-                    label="Paid Date"
-                    name="paid_at"
-                    type="date"
-                    placeholder=""
-                    value={formik.values.paid_at}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.paid_at}
-                    touched={formik.touched.paid_at}
-                    disabled={isLocked}
-                />
-            </div>
-
-            {/* Status */}
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                </label>
-                <select
-                    name="status"
-                    value={formik.values.status}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    disabled={isLocked}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg
-                        text-sm outline-none transition focus:ring-2 focus:ring-blue-500
-                        focus:border-blue-500 bg-white disabled:bg-gray-50
-                        disabled:text-gray-400 disabled:cursor-not-allowed"
-                >
-                    {PAYMENT_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                    ))}
-                </select>
-                {formik.touched.status && formik.errors.status && (
-                    <p className="mt-1 text-xs text-red-500">{formik.errors.status}</p>
-                )}
-            </div>
+            {/* Payment Date */}
+            <Input
+                label="Payment Date"
+                name="paid_at"
+                type="date"
+                placeholder=""
+                value={formik.values.paid_at}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.errors.paid_at}
+                touched={formik.touched.paid_at}
+                disabled={isLocked}
+            />
 
             {/* Notes */}
             <div>
@@ -253,7 +202,10 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={isLocked}
-                    placeholder="Add notes about this payment..."
+                    placeholder={formik.values.type === 'DEPOSIT'
+                        ? 'e.g. Security deposit for Unit 1A lease'
+                        : 'e.g. Broken window repair charge'
+                    }
                     rows={3}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg
                         text-sm outline-none transition focus:ring-2 focus:ring-blue-500
@@ -268,10 +220,10 @@ const CreatePaymentForm = ({ id, data, onSuccess }: Props) => {
                     <Button
                         type="submit"
                         loading={formik.isSubmitting}
-                        loadingText={isEdit ? 'Updating...' : 'Recording...'}
+                        loadingText={isEdit ? 'Updating...' : 'Creating...'}
                         className="px-6"
                     >
-                        {isEdit ? 'Update Payment' : 'Record Payment'}
+                        Save Payment
                     </Button>
                 </div>
             )}

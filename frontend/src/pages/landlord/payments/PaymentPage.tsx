@@ -3,6 +3,8 @@ import { useModal } from "../../../components/common/modal/ModalProvider";
 import { ROUTES } from "../../../constants/routes";
 import { useTableHook } from "../../../hooks/useDatatableHook";
 import CreatePaymentForm from "./components/forms/CreatePaymentForm";
+import UpdatePaymentTransaction from "./components/forms/UpdatePaymentTransactionForm";
+import ViewPaymentTransactionModal from "./components/modals/ViewPaymentTransactionModal";
 import { PaymentDatatable } from "./components/tables/Datatable";
 import { useController } from "./core/requests";
 import type { PaymentProps } from "./core/types";
@@ -12,6 +14,23 @@ const PaymentPage = () => {
     const controller = useController();
 
     const {showModal, closeModal} = useModal();
+
+    const handleView = async(id:string) =>{
+        const res = await controller.viewPayment(id);
+        if(!res) return;
+        showModal({
+            title:'Payment Details',
+            body:<CreatePaymentForm 
+                onSuccess={() => {
+                    closeModal()
+                    table.setRefreshTable(true)
+                }}
+                id={id}
+                data={res.data}
+            />,
+            size:      'xl'
+        });
+    }
 
     const handleCreate = () =>{
         showModal({
@@ -25,12 +44,33 @@ const PaymentPage = () => {
             size:      'xl'
         });
     }
-
-    const handleEdit = () =>{
+    
+    const handleViewRecordPayment = async(id:string) => {
+        const res = await controller.viewPayment(id);
+        if(!res) return;
         showModal({
-            title:      'Edit Payment',
-            body:       '',
-            size:      'xl'
+            title:'Payment Info (read only)',
+            body:<ViewPaymentTransactionModal 
+                data={res.data}
+            />,
+        size:'xl'
+        });
+    }
+
+    const handleRecordPayment = async(id:string) =>{
+        const res = await controller.viewPayment(id);
+        if(!res) return;
+        showModal({
+            title:'Record Transaction',
+            body:<UpdatePaymentTransaction 
+                onSuccess={() => {
+                    closeModal()
+                    table.setRefreshTable(true)
+                }}
+                id={id}
+                data={res.data}
+            />,
+        size:'xl'
         });
     }
 
@@ -71,9 +111,11 @@ const PaymentPage = () => {
                     table.setSortColumn(col)
                     table.setSortDirection(dir)
                 }}
-                onView={handleEdit}
+                onView={handleView}
                 onArchive={handleDelete}
                 setRefreshTable={table.setRefreshTable}
+                onEdit={handleRecordPayment}
+                onViewRecordPayment={handleViewRecordPayment}
             />
         </div>
     )

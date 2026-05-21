@@ -6,11 +6,13 @@ use App\Constants\PaymentStatus;
 use App\Constants\PaymentType;
 use App\Helpers\DTServerSide;
 use App\Models\Payment;
+use App\Models\PaymentTransaction;
 use App\Notifications\PaymentConfirmed;
 use App\Traits\ApiResponseTrait;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PaymentService
 {
@@ -25,7 +27,7 @@ class PaymentService
     {
         $data = Payment::with([
             'lease'=>function($q){
-                $q->with('tenant')->active();
+                $q->with(['tenant','unit.property'])->active();
             }
         ])
         ->whereHas('lease.unit.property',function($q){
@@ -36,7 +38,8 @@ class PaymentService
             'lease.tenant.name',
         ];
         $sortableColumn = [
-            'amount' => 'amount'
+            'id'     => 'id',
+            'amount' => 'amount',
         ];
         return (new DTServerSide($rq,$data,$searchableColumn,$sortableColumn))->renderTable();
     }
@@ -45,23 +48,25 @@ class PaymentService
     {
         try{
             DB::beginTransaction();
-            $exists = Payment::where([['lease_id', $rq->lease_id],['due_date', $rq->due_date],['type',PaymentType::RENT->value]])
-            ->whereHas('unit.property', function ($q) {
+
+            $exists = Payment::where('lease_id', $rq->lease_id)
+            ->where('type', PaymentType::DEPOSIT->value)
+            ->whereHas('lease.unit.property', function ($q) {
                 $q->where('landlord_id', Auth::id());
             })
             ->exists();
+
             if ($exists) {
-                return $this->error('Payment for this month already exists!', null, 422);
+                return $this->error('Deposit payment for this lease already exists', null, 422);
             }
+
             $data = Payment::create([
-                'lease_id' => $rq->lease_id,
-                'amount'  => $rq->amount,
-                'late_fee' => $rq->late_fee,
-                'type' => $rq->type,
-                'due_date' => $rq->due_date,
-                'paid_at' => $rq->paid_at,
-                'status' => $rq->status,
-                'notes' => $rq->notes,
+                'lease_id'  => $rq->lease_id,
+                'amount'    => $rq->amount,
+                'type'      => $rq->type,
+                'paid_at'   => $rq->paid_at,
+                'notes'     => $rq->notes,
+                'recorded_by' => Auth::id(),
             ]);
             DB::commit();
             return $this->ok('Payment sucess!',$data,201);
@@ -74,37 +79,72 @@ class PaymentService
     public function find(string $id)
     {
         try{
-            $data = Payment::whereHas('lease.unit.property',function($q){
+            $data = Payment::with([
+                'lease'=>function($q){
+                    $q->with(['tenant','unit.property'])->active();
+                },
+                'transactions',
+            ])
+            ->whereHas('lease.unit.property',function($q){
                 $q->where('landlord_id',Auth::id());
-            })->findOrFail($id);
+            })
+            ->findOrFail($id);
             return $this->ok('Success!',$data);
         } catch(Exception $e) {
             return $this->error('Payment not found!',$e->getMessage());
         }
     }
 
-    public function updateStatus($rq, string $id)
+    public function update($rq, string $id)
     {
-        try{
+        try {
             DB::beginTransaction();
-            $data = Payment::whereHas('lease.unit.property',function($q){
-                $q->where('landlord_id',Auth::id());
-            })->findOrFail($id);
-            if($data->status === PaymentStatus::PAID){
-                return $this->error('Payment for this month is already paid!',null,422);
-            }
-            $data->paid_at = $rq->status === PaymentStatus::PAID->value ? $rq->paid_at : null;
-            $data->status = $rq->status;
-            $data->save();
-            DB::commit();
-            if ($data->status === PaymentStatus::PAID->value) {
-                $data->lease->tenant->notify(new PaymentConfirmed($data));
-            }
-            return $this->ok('Success!');
-        } catch(Exception $e) {
-            DB::rollBack();
-            return $this->error('Failed to update payment status!',$e->getMessage());
-        }
 
+            $payment = Payment::whereHas('lease.unit.property', function ($q) {
+                $q->where('landlord_id', Auth::id());
+            })->findOrFail($id);
+
+            if ($payment->status === PaymentStatus::PAID->value) {
+                return $this->error('Payment is already fully paid.', null, 422);
+            }
+
+            $newTotalPaid = (int)$payment->amount_paid + (int) $rq->amount_paid;
+            $totalDue = (int) $payment->amount + (int) $payment->late_fee;
+            if ($newTotalPaid <= 0) {
+                $status = PaymentStatus::PENDING->value;
+            } elseif ($newTotalPaid < $totalDue) {
+                $status = PaymentStatus::PARTIAL->value;
+            } else {
+                $status = PaymentStatus::PAID->value;
+            }
+
+            // record the transaction
+            PaymentTransaction::create([
+                'payment_id'      => $payment->id,
+                'recorded_by'     => Auth::id(),
+                'status'          => $status,
+                'type'            => $payment->type,
+                'amount_paid'     => $rq->amount_paid ?? 0,
+                'late_fee'        => $rq->late_fee ?? 0,
+                'paid_at'         => $rq->paid_at,
+                'landlord_notes'  => $rq->landlord_notes,
+            ]);
+
+            $payment->update([
+                'amount_paid'  => $newTotalPaid,
+                'status'       => $status,
+                'paid_at'      => $status === PaymentStatus::PAID->value
+                                    ? $rq->paid_at
+                                    : null,
+                'recorded_by'  => Auth::id()
+            ]);
+
+            DB::commit();
+            $payment->lease->tenant->notify(new PaymentConfirmed($payment));
+            return $this->ok('Payment recorded successfully!', $payment->fresh());
+        } catch (Throwable $t) {
+            DB::rollBack();
+            return $this->error('Failed to record payment.', $t->getMessage());
+        }
     }
 }

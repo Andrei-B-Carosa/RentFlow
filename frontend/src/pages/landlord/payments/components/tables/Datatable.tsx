@@ -10,17 +10,24 @@ type Props = {
   sortDirection:        'asc' | 'desc'
   onPageChange:         (page: number) => void
   onSortChange:         (col: string, dir: 'asc' | 'desc') => void
-  onEdit?:              (id: string) => void
+  onEdit:               (id: string) => void
   onView:               (id: string) => void
   onArchive?:           (id: string, setRefreshTable?: (refresh: boolean) =>void) => void
   setRefreshTable?:     (refresh: boolean) =>void
   onSearchChange?:      (value: any) => void
+  onViewRecordPayment:  (id:string) =>void
 }
 
 const statusStyle: Record<string, string> = {
-    RESOLVED:     'bg-green-200 text-green-600 border-green-300',
-    OPEN:    'text-blue-600 bg-blue-200 border-blue-300',
-    IN_PROGRESS: 'bg-yellow-200 text-yellow-600 border-yellow-300',
+    PAID:       'bg-green-200 text-green-600 border-green-300',
+    PARTIAL:    'text-blue-600 bg-blue-200 border-blue-300',
+    LATE:       'bg-yellow-200 text-yellow-600 border-yellow-300',
+    PENDING:    'bg-gray-200 text-gray-600 border-gray-300',
+}
+
+const getTypeStyle = (type: string) => {
+  if (type === 'RENT') return 'bg-green-200 text-green-600 border-green-300'
+  return 'text-blue-600 bg-blue-200 border-blue-300'
 }
 
 export const PaymentDatatable = ({
@@ -36,6 +43,7 @@ export const PaymentDatatable = ({
     onArchive,
     onSearchChange,
     setRefreshTable,
+    onViewRecordPayment,
 }: Props) => {
 
     const columns: Column<PaymentProps>[] = [
@@ -44,92 +52,111 @@ export const PaymentDatatable = ({
         key:    'row_number',
         sortable: false,
         },
-        // { title: 'Tenant', key: 'tenant', sortable: false,
-        //     render: (item) => (
-        //         <div className="flex items-center gap-1.5">
-        //         <div>
-        //             <p className="font-medium text-gray-700">
-        //                 {item.tenant?.name ?? '—'}
-        //             </p>
-        //             <p className="text-[12px] text-gray-400">
-        //                 {item.tenant?.email ?? '—'}
-        //             </p>
-        //         </div>
-        //     </div>
-        //     )
-        // },
-        // { title: 'Property', key: 'unit', sortable: false,
-        //     render: (item) => (
-        //          <div className="space-y-1">
-        //             <p className="text-sm font-bold text-gray-800 mb-0">
-        //                 {item.unit?.property?.name ?? '—'}
-        //             </p>
-        //             <p className="text-blue-600 font-semibold">
-        //                 {item.unit?.unit_number ?? '—'}
-        //             </p>
-        //         </div>
-        //     )
-        // },
-        // {
-        //     title:'Concern', key: 'title', sortable: false,
-        // },
-        // {
-        //     title:'Description', key: 'description', sortable: false,
-        //     render:   (item) => (
-        //         <p className="text-sm text-gray-600 line-clamp-2 max-w-xs">
-        //             {item.description ?? '—'}
-        //         </p>
-        //     )
-        // },
-        // {
-        //     title:'Notes', key: 'landlord_notes', sortable: false,
-        //     render:(item)=>{
-        //         return (item.landlord_notes??'—')
-        //     }
-        // },
-        // {
-        //     title:'Request At', key: 'formatted_date', sortable: false,
-        // },
-        // {
-        //     title:'Resolved At', key: 'formatted_resolved_at', sortable: false,
-        //     render:(item)=>{
-        //         return (item.formatted_resolved_at??'—')
-        //     }
-        // },
-        // {
-        //     title:    'Status',
-        //     key:      'status',
-        //     sortable: false,
-        //     render:   (item) => {
-        //         return (
-        //             <span className={`px-3 py-1 text-xs font-bold rounded-full border uppercase tracking-wider
-        //                 ${statusStyle[item.status] ?? 'bg-gray-50 text-gray-500 border-gray-100'}`}>
-        //                 {item.status}
-        //             </span>
-        //         )
-        //     }
-        // },
+        { title: 'Tenant', key: 'tenant', sortable: false,
+            render: (item) => (
+                <div className="flex items-center gap-1.5">
+                    <div>
+                        <p className="font-medium text-gray-700">
+                            {item.lease.tenant?.name ?? '—'}
+                        </p>
+                        <p className="text-[12px] text-gray-400">
+                            {item.lease.tenant?.email ?? '—'}
+                        </p>
+                    </div>
+                </div>
+            )
+        },
+        { title: 'Property', key: 'unit', sortable: false,
+            render: (item) => (
+                 <div className="space-y-1">
+                    <p className="text-sm font-bold text-gray-800 mb-0">
+                        {item.lease.unit?.property?.name ?? '—'}
+                    </p>
+                    <p className="text-blue-600 font-semibold">
+                        {item.lease.unit?.unit_number ?? '—'}
+                    </p>
+                </div>
+            )
+        },
+        {
+            title:'Amount', key: 'amount', sortable: false,
+        },
+        {
+            title:    'Type',
+            key:      'type',
+            sortable: false,
+            render:   (item) => {
+                return (
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full border uppercase tracking-wider
+                        ${getTypeStyle(item.type) ?? 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                        {item.type}
+                    </span>
+                )
+            }
+        },
+        {
+            title:'Notes', key: 'notes', sortable: false,
+            render:(item)=>{
+                return (item.notes??'—')
+            }
+        },
+        {
+            title:    'Status',
+            key:      'status',
+            sortable: false,
+            render:   (item) => {
+                return (
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full border uppercase tracking-wider
+                        ${statusStyle[item.status] ?? 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                        {item.status}
+                    </span>
+                )
+            }
+        },
+        {
+            title:'Due Date', key: 'formatted_due_date', sortable: false,
+            render:(item)=>(
+                item.formatted_due_date!=''?item.formatted_due_date:'—'
+            )
+        },
+        {
+            title:'Paid At', key: 'formatted_paid_at', sortable: false,
+            render:(item)=>(
+                item.formatted_paid_at!=''?item.formatted_paid_at:'—'
+            )
+        },
         {
             title: 'Action',key: 'id',
             render: (item) => (
                 <div className="flex items-center gap-2">
-                    {onView && (
+                    {onView && item.type !== 'RENT' && (
                         <Button
                             onClick={() => onView(item.id)}
                             className="px-3 py-1.5 text-xs font-medium text-blue-600
                                 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
                         >
-                            View Request
+                            View
                         </Button>
                     )}
-                    {onArchive && item.status !='RESOLVED' &&(
-                        <Button
-                            onClick={() => onArchive(item.id)}
-                            className="px-3 py-1.5 text-xs font-medium text-blue-600
-                                bg-blue-50 hover:bg-blue-100 rounded-lg transition"
-                        >
-                            Delete Request
-                        </Button>
+                    {item.type === 'RENT' &&(
+                        <>
+                            {item.status !== 'PAID' && (
+                                <Button
+                                    onClick={() => onEdit(item.id)}
+                                    className="px-3 py-1.5 text-xs font-medium text-blue-600
+                                    bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                                >
+                                    Record Payment
+                                </Button>
+                                )}
+                            <Button
+                                onClick={() => onViewRecordPayment(item.id)}
+                                className="px-3 py-1.5 text-xs font-medium text-blue-600
+                                    bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                            >
+                                View
+                            </Button>
+                        </>
                     )}
                 </div>
             ),

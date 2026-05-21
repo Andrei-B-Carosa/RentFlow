@@ -51,7 +51,7 @@ Route::prefix('payments')->controller(PaymentController::class)->group(function(
     Route::get('/','index');
     Route::post('/','store');
     Route::get('/{id}','show');
-    Route::patch('/{id}/status','updateStatus');
+    Route::put('/{id}','update');
 });
 
 Route::prefix('maintenance')->controller(MaintenanceController::class)->group(function(){

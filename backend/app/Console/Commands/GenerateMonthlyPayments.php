@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Constants\PaymentType;
 use App\Models\Lease;
 use App\Models\Payment;
 use App\Notifications\LateFeeCharged;
@@ -51,16 +52,22 @@ class GenerateMonthlyPayments extends Command
         });
     }
 
-    private function buildBreakdown($lease, $previousPayment)
+    private function buildBreakdown($lease, $previousPayment): array
     {
         $monthlyRent     = (float) $lease->monthly_rent;
         $previousBalance = 0;
         $previousLateFee = 0;
 
         if ($previousPayment) {
-            // carry over if not fully paid
             if (in_array($previousPayment->status, ['LATE', 'PARTIAL'])) {
-                $previousBalance = (float) $previousPayment->amount;
+                // for PARTIAL — carry over the REMAINING balance not the full amount
+                if ($previousPayment->status === 'PARTIAL') {
+                    $amountPaid      = (float) ($previousPayment->amount_paid ?? 0);
+                    $previousBalance = (float) $previousPayment->amount - $amountPaid;
+                } else {
+                    // LATE — carry over full amount
+                    $previousBalance = (float) $previousPayment->amount;
+                }
                 $previousLateFee = (float) $previousPayment->late_fee;
             }
         }
@@ -68,10 +75,10 @@ class GenerateMonthlyPayments extends Command
         $total = $monthlyRent + $previousBalance + $previousLateFee;
 
         return [
-            'monthly_rent'     => $monthlyRent,
-            'previous_balance' => $previousBalance,
-            'previous_late_fee'=> $previousLateFee,
-            'total'            => $total,
+            'monthly_rent'      => $monthlyRent,
+            'previous_balance'  => $previousBalance,
+            'previous_late_fee' => $previousLateFee,
+            'total'             => $total,
         ];
     }
 
@@ -98,6 +105,7 @@ class GenerateMonthlyPayments extends Command
             'status'    => 'PENDING',
             'notes'     => 'Auto-generated monthly payment.',
             'breakdown' => $breakdown,
+            'type'      => PaymentType::RENT->value,
         ]);
 
         // notify tenant

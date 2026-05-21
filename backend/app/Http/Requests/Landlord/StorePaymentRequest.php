@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Landlord;
 
 use App\Constants\PaymentStatus;
+use App\Constants\PaymentType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,11 +28,13 @@ class StorePaymentRequest extends FormRequest
         return [
             'lease_id' =>['required','string', 'exists:leases,id'],
             'amount'   => ['required', 'numeric', 'min:0'],
-            'late_fee' => ['nullable', 'numeric', 'min:0'],
-            'due_date' =>['required','date'],
             'paid_at' =>['nullable','date'],
-            'status' =>['required',Rule::in(array_column(PaymentStatus::cases(), 'value')),],
-            'notes' =>['nullable','string'],
+            'notes' => ['nullable', 'string'],
+            'type' => [
+                'required',
+                Rule::in(array_map(fn (PaymentType $type) => $type->value, PaymentType::cases())),
+                Rule::notIn([PaymentType::RENT->value]),
+            ],
         ];
     }
 }
