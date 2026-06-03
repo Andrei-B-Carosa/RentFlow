@@ -18,7 +18,6 @@ export const ROUTES = {
 
     // Tenant
     TENANT: {
-        DASHBOARD:   '/tenant/dashboard',
         UNIT:        '/tenant/unit',
         LEASE:       '/tenant/lease',
         PAYMENTS:    '/tenant/payments',

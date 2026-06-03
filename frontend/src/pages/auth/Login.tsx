@@ -32,7 +32,7 @@ const LoginPage = () => {
 
                 // redirect based on role
                 if (user.role === 'LANDLORD') navigate(ROUTES.LANDLORD.DASHBOARD);
-                if (user.role === 'TENANT')   navigate(ROUTES.TENANT.DASHBOARD);
+                if (user.role === 'TENANT')   navigate(ROUTES.TENANT.UNIT);
                 
             } catch (error: any) {
                 const message = error.response?.data?.message;

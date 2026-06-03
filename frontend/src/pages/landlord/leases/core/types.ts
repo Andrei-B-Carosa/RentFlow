@@ -15,7 +15,7 @@ export interface LeaseProps {
     status:string;
     payments:PaymentProps[];
     unit:UnitProps;
-    formatted_start_date?:string;
+    formatted_start_date:string;
     formatted_end_date?:string|null;
     document_path:string|null;
     landlord_notes:string|null;

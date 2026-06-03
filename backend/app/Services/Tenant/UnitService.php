@@ -19,11 +19,11 @@ class UnitService
     public function find()
     {
         try{
-            $data = Lease::with('unit.property')
+            $data = Lease::with('unit.property.landlord')
             ->where('tenant_id',Auth::id())
             ->active()
             ->firstOrFail();
-            return $this->ok('Success!', $data->unit);
+            return $this->ok('Success!', $data);
         } catch(Throwable $t) {
             return $this->error('Failed to find unit', $t->getMessage());
         }

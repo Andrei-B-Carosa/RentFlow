@@ -98,21 +98,21 @@ const PropertyDetailPage = () => {
             <div className="bg-white mb-5 rounded-xl">
                 {/* Header */}
                 <div className=" backdrop-blur-md border-b border-gray-100 rounded-xl">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <button
-                    onClick={() => navigate(ROUTES.LANDLORD.PROPERTIES)}
-                    className="flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors"
-                    >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Properties
-                    </button>
-                    <Button 
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
-                        onClick={handleUpdateProperty}
-                    >
-                    <Edit3 className="w-4 h-4 mr-2" /> Edit Details
-                    </Button>
-                </div>
+                    <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+                        <button
+                        onClick={() => navigate(ROUTES.LANDLORD.PROPERTIES)}
+                        className="flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors"
+                        >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Properties
+                        </button>
+                        <Button 
+                            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
+                            onClick={handleUpdateProperty}
+                        >
+                        <Edit3 className="w-4 h-4 mr-2" /> Edit Details
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="max-w-6xl mx-auto px-6 py-8">

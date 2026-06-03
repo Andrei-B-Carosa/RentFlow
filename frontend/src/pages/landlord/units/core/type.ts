@@ -3,7 +3,7 @@ import type { PropertyProps } from "../../properties/core/types";
 
 export interface UnitProps {
     id:string;
-    unit_number:number;
+    unit_number:string;
     rent_price:number;
     status:string;
     bedrooms:string[],

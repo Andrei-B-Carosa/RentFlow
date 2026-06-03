@@ -56,14 +56,14 @@ class PaymentService
     public function findReceipt(string $id)
     {
         try {
-            $data = Payment::with(['lease.unit.property'])
+            $data = Payment::with(['lease.unit.property','lease.tenant'])
                 ->whereHas('lease', function ($q) {
                     $q->where('tenant_id', Auth::id());
                 })
                 ->findOrFail($id);
 
             // only allow receipt for paid payments
-            if ($data->status !== PaymentStatus::PAID->value) {
+            if ($data->status !== PaymentStatus::PAID) {
                 return $this->error('Receipt only available for paid payments.', null, 422);
             }
 
