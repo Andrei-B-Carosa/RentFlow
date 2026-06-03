@@ -83,7 +83,7 @@ class MaintenanceService
     public function find(string $id)
     {
          try{
-            $data = MaintenanceRequest::where('tenant_id',Auth::id())->findOrFail($id);
+            $data = MaintenanceRequest::with(['unit','tenant'])->where('tenant_id',Auth::id())->findOrFail($id);
             return $this->ok('Success!',$data);
          } catch(Throwable $t) {
             return $this->error('Failed to find maintenance request',$t->getMessage(),404);

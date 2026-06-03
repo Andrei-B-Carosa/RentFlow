@@ -5,11 +5,12 @@ type InputProps = {
     value?:       string | number;
     className?:   string;
     name:         string;
-    onChange:     (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur:       (e: React.FocusEvent<HTMLInputElement>) => void;
+    onChange?:     (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur?:       (e: React.FocusEvent<HTMLInputElement>) => void;
     error?:       string;
     touched?:     boolean;
     disabled?:    boolean;
+    multiple?:    boolean;
 };
 
 const Input = ({
@@ -24,6 +25,7 @@ const Input = ({
     error,
     touched,
     disabled=false,
+    multiple=false,
 }: InputProps) => {
     return (
         <div className={className}>
@@ -46,6 +48,7 @@ const Input = ({
                         : 'border-gray-300 bg-white'
                     }`}
                 disabled={disabled}
+                multiple={multiple}
             />
             {touched && error && (
                 <p className="mt-1 text-xs text-red-500">{error}</p>

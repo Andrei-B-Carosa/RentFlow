@@ -8,9 +8,11 @@ interface Props {
     onChange?:     (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     onBlur?:       (e: React.FocusEvent<HTMLTextAreaElement>) => void;
     label?:string;
+    error?:string;
+    touched?:boolean;
 }
 
-const TextArea = ({name,value="",placeholder,rows=3,className,label,onChange,onBlur}:Props) => {
+const TextArea = ({name,value="",placeholder,rows=3,className,label,onChange,onBlur, error, touched}:Props) => {
 
     return (
         <div className={className}>
@@ -31,6 +33,9 @@ const TextArea = ({name,value="",placeholder,rows=3,className,label,onChange,onB
                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full`}
 
             />
+            {touched && error && (
+                <p className="mt-1 text-xs text-red-500">{error}</p>
+            )}
         </div>
     );
 }
